@@ -20,6 +20,20 @@ export async function runWithConcurrency<T, R>(
   limit: number,
   fn: (item: T, index: number) => Promise<R>,
 ): Promise<R[]> {
-  throw new Error("TODO 3: implement runWithConcurrency()");
+  if (limit < 1) throw new RangeError("limit must be >= 1");
+  const results = new Array<R>(items.length);
+  let next = 0; // shared cursor; `next++` runs synchronously, so no two workers get the same index
+
+  const worker = async (): Promise<void> => {
+    while (next < items.length) {
+      const i = next++;
+      results[i] = await fn(items[i]!, i); // write by index => input order preserved
+    }
+  };
+
+  // Exactly min(limit, n) workers => never more than `limit` calls in flight.
+  // Promise.all rejects as soon as any worker's fn() rejects.
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+  return results;
 }
 // ---------------------------------------------------------------------------

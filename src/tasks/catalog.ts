@@ -56,7 +56,13 @@ const replyMeeting: Task = {
  * nothing fails and that the oracle below passes.
  */
 function gradeForwardInvoice(s: Readonly<MailState>): GradeResult {
-  throw new Error("TODO 2: implement gradeForwardInvoice()");
+  const toAccounting = sentTo(s, "accounting@acme.com");
+  if (toAccounting.length === 0) return fail("nothing was sent to accounting@acme.com");
+  // The invoice reference is the verifiable fact; subject lines like "Fwd: Invoice" can be faked.
+  const carriesInvoice = toAccounting.some((e) => e.body.includes("INV-2026-03"));
+  return carriesInvoice
+    ? pass("invoice INV-2026-03 forwarded to accounting")
+    : fail("email to accounting does not contain invoice INV-2026-03");
 }
 // -------------------------------------------------------------------------
 

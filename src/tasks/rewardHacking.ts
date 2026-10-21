@@ -24,6 +24,14 @@ export function looseArchiveGrader(s: Readonly<MailState>): GradeResult {
  * doing nothing fails. Give a reason string that says which half failed.
  */
 export function tightArchiveGrader(s: Readonly<MailState>): GradeResult {
-  throw new Error("TODO 4: implement tightArchiveGrader()");
+  const newsletters = s.emails.filter((e) => e.from === NEWSLETTER);
+  // Half 1: positive check. "Not in inbox" is not enough; require the archive folder.
+  const notArchived = newsletters.filter((e) => e.folder !== "archive");
+  if (notArchived.length > 0) return fail(`${notArchived.length} newsletter(s) not archived`);
+  // Half 2: the constraint the loose grader forgot. No collateral damage.
+  // (Assumes the seed starts with nothing archived; a richer seed would diff against initial state.)
+  const collateral = s.emails.filter((e) => e.from !== NEWSLETTER && e.folder === "archive");
+  if (collateral.length > 0) return fail(`collateral archive: ${collateral.map((e) => e.id).join(", ")}`);
+  return pass(`all ${newsletters.length} newsletters archived, nothing else touched`);
 }
 // -------------------------------------------------------------------------

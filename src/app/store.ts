@@ -25,14 +25,16 @@ export class MailStore {
    * not change the snapshot. (Think: what does `return this.state` break?)
    */
   snapshot(): MailState {
-    throw new Error("TODO 1: implement snapshot()");
+    // Deep copy: emails are objects holding arrays, so a spread would still alias them.
+    return structuredClone(this.state);
   }
 
   /** Replace the current state with a previously taken snapshot.
    * Same independence requirement: the store must not keep a reference to
    * the object passed in. */
   restore(snapshot: MailState): void {
-    throw new Error("TODO 1: implement restore()");
+    // Copy on the way in too, so the caller can keep mutating its snapshot safely.
+    this.state = structuredClone(snapshot);
   }
   // -----------------------------------------------------------------------
 
